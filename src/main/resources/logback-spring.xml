@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <appender name="SERVER_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/profit-calculator.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>logs/profit-caculator-%i.log.gz</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>5</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>300MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder>
+            <pattern>
+                [%date{"yyyy-MM-dd'T'HH:mm:ss,SSSZ"}]-[%-5level]-[trace=%X{X-B3-TraceId},span=%X{X-B3-SpanId}]-[%logger{0}]-[%-4.-4line]-%msg %ex{full}%n
+            </pattern>
+        </encoder>
+    </appender>
+    <springProfile name="default">
+        <appender name="SERVER_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <withJansi>true</withJansi>
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>
+                    [%date{"yyyy-MM-dd'T'HH:mm:ss,SSSZ"}]-[%-5level]-[trace=%X{X-B3-TraceId},span=%X{X-B3-SpanId}]-[%logger{0}]-[%-4.-4line]-%msg %ex{full}%n
+                </pattern>
+            </encoder>
+        </appender>
+        <appender name="SERVER_CONSOLE_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="SERVER_CONSOLE"/>
+            <includeCallerData>true</includeCallerData>
+        </appender>
+    </springProfile>
+
+    <appender name="SERVER_FILE_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SERVER_FILE"/>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <logger name="com.shivang.stock.profit" level="DEBUG" additivity="false">
+        <springProfile name="default">
+            <appender-ref ref="SERVER_CONSOLE_ASYNC"/>
+        </springProfile>
+        <appender-ref ref="SERVER_FILE_ASYNC"/>
+    </logger>
+
+    <root level="INFO">
+        <springProfile name="default">
+            <appender-ref ref="SERVER_CONSOLE_ASYNC"/>
+        </springProfile>
+        <appender-ref ref="SERVER_FILE_ASYNC"/>
+    </root>
+
+</configuration>

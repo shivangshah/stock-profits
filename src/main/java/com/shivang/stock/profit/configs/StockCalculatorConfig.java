@@ -4,18 +4,11 @@ import com.fasterxml.classmate.TypeResolver;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
+import com.shivang.stock.profit.utils.UnquestioningTruststoreManager;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -29,7 +22,6 @@ import springfox.documentation.service.Tag;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
-import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -42,6 +34,7 @@ import static springfox.documentation.schema.AlternateTypeRules.newRule;
 @Configuration
 public class StockCalculatorConfig {
 
+
     /**
      * Rest Template bean autoconfigured with wildcard cert acceptance
      *
@@ -52,21 +45,9 @@ public class StockCalculatorConfig {
      */
     @Bean
     public RestTemplate restTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
-        SSLContextBuilder builder = new SSLContextBuilder();
-        builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build(), new NoopHostnameVerifier());
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setSSLSocketFactory(sslsf)
-                .build();
-        HttpComponentsClientHttpRequestFactory useApacheHttpClient = new HttpComponentsClientHttpRequestFactory();
-        useApacheHttpClient.setReadTimeout(2000);
-        useApacheHttpClient.setConnectTimeout(2000);
-        useApacheHttpClient.setHttpClient(httpClient);
 
-        RestTemplate restTemplate = new RestTemplate(useApacheHttpClient);
-        restTemplate.getMessageConverters()
-                .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
-        return restTemplate;
+        UnquestioningTruststoreManager.setupUnquestioningTruststoreManager();
+        return new RestTemplate();
     }
 
     /**
